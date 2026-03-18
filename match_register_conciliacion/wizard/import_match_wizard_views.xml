@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Vista del wizard de importación -->
+        <record id="view_import_match_wizard_form" model="ir.ui.view">
+            <field name="name">import.match.wizard.form</field>
+            <field name="model">import.match.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Importar Extracto y Buscar Matches">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="journal_id" required="1"/>
+                                <field name="file_type"/>
+                                <field name="file" filename="filename" required="1"/>
+                                <field name="filename" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="start_row"/>
+                                <field name="date_format"/>
+                            </group>
+                        </group>
+                        
+                        <notebook>
+                            <page string="Mapeo de Columnas">
+                                <group>
+                                    <group string="Columnas Requeridas">
+                                        <field name="column_date" placeholder="Ej: A o 1"/>
+                                        <field name="column_reference" placeholder="Ej: B o 2"/>
+                                        <field name="column_partner" placeholder="Ej: C o 3"/>
+                                        <field name="column_amount" placeholder="Ej: D o 4"/>
+                                    </group>
+                                    <group string="Columnas Opcionales">
+                                        <field name="column_description" placeholder="Ej: E o 5"/>
+                                        <field name="column_vat" placeholder="Ej: F o 6 (opcional)"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Vista Previa del Mapeo">
+                                <field name="mapping_info" nolabel="1"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <footer>
+                        <button string="Cargar Extractos y Hacer Match" name="action_load_and_find_matches" type="object" class="btn-primary"/>
+                        <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+        <!-- Acción del wizard -->
+        <record id="action_import_match_wizard" model="ir.actions.act_window">
+            <field name="name">Importar Extracto y Buscar Matches</field>
+            <field name="res_model">import.match.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+    </data>
+</odoo>
+

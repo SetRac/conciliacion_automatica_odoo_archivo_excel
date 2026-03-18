@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Vista lista de registros de conciliación -->
+        <record id="view_match_register_conciliacion_list" model="ir.ui.view">
+            <field name="name">match.register.conciliacion.list</field>
+            <field name="model">match.register.conciliacion</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="journal_id"/>
+                    <field name="state" widget="badge" decoration-success="state == 'reconciled'" decoration-info="state == 'matches_found'"/>
+                    <field name="match_count"/>
+                    <field name="match_selected_count"/>
+                </list>
+            </field>
+        </record>
+        
+        <!-- Vista formulario de registro de conciliación -->
+        <record id="view_match_register_conciliacion_form" model="ir.ui.view">
+            <field name="name">match.register.conciliacion.form</field>
+            <field name="model">match.register.conciliacion</field>
+            <field name="arch" type="xml">
+                <form string="Registro de Conciliación">
+                    <header>
+                        <button name="action_reset_to_draft" string="Volver a Borrador" type="object" class="btn-secondary"
+                                invisible="state == 'draft'"/>
+                        <button name="action_generate_example_file" string="Generar Archivo de Ejemplo" type="object" class="btn-info"
+                                invisible="state != 'draft' or not journal_id"/>
+                        <button name="action_import_and_find_matches" string="Importar Extracto y Buscar Matches" type="object" class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_find_matches" string="Buscar Matches" type="object" class="btn-secondary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_confirm_and_reconcile" string="Confirmar y Reconciliar" type="object" class="btn-success"
+                                invisible="state != 'matches_found' or match_selected_count == 0"/>
+                        <button name="action_unreconcile" string="Romper Conciliaciones" type="object" class="btn-danger"
+                                invisible="state != 'reconciled'"
+                                confirm="¿Está seguro de que desea deshacer todas las conciliaciones de este registro? Esto volverá el estado a Borrador."/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,matches_found,reconciled"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="date"/>
+                                <field name="journal_id"/>
+                            </group>
+                            <group>
+                                <field name="match_count" widget="statinfo" string="Total Matches"/>
+                                <field name="match_selected_count" widget="statinfo" string="Seleccionados"/>
+                                <field name="match_reconciled_count" widget="statinfo" string="Reconciliados" 
+                                       decoration-success="match_reconciled_count > 0"/>
+                                <field name="match_error_count" widget="statinfo" string="Con Error" 
+                                       decoration-danger="match_error_count > 0"/>
+                                <field name="statement_id" invisible="not statement_id"/>
+                                <button name="action_view_statement" 
+                                        string="Ver Extracto Bancario" 
+                                        type="object" 
+                                        class="btn-info"
+                                        invisible="not statement_id"/>
+                            </group>
+                        </group>
+                        
+                        <!-- Mostrar errores de desreconciliación si los hay -->
+                        <div class="alert alert-warning" role="alert" invisible="not unreconcile_error_message">
+                            <strong>⚠️ Errores al romper conciliaciones:</strong><br/>
+                            <field name="unreconcile_error_message" nolabel="1" widget="text"/>
+                        </div>
+                        
+                        <group>
+                        </group>
+                        
+                        <notebook>
+                            <page string="Importar Extracto">
+                                <group>
+                                    <group>
+                                        <field name="match_method" widget="radio" options="{'horizontal': true}"/>
+                                        <div class="alert alert-info" role="alert">
+                                            <strong>Métodos de Match disponibles:</strong><br/>
+                                            • <strong>Referencia Exacta (sin importar monto)</strong> (por defecto): Busca matches solo por referencia exacta, sin considerar el monto<br/>
+                                            • <strong>Referencia Parcial (sin importar monto)</strong>: Busca matches por referencia parcial, sin considerar el monto<br/>
+                                            • <strong>Monto Exacto + Referencia Exacta</strong>: Busca matches con monto y referencia idénticos<br/>
+                                            • <strong>Monto Exacto + Referencia Parcial</strong>: Busca si parte de la referencia del extracto está en el memo del pago, con monto exacto<br/>
+                                            • <strong>VAT en Concepto + Fecha + Monto</strong>: Busca el VAT/RIF en la descripción, junto con fecha y monto<br/>
+                                            • <strong>VAT en Concepto + Monto</strong>: Busca el VAT/RIF en la descripción junto con el monto<br/>
+                                            • <strong>Fecha + Monto</strong>: Busca por fecha y monto exacto<br/>
+                                            • <strong>Partner + Fecha + Monto</strong>: Busca por partner, fecha y monto<br/>
+                                            • <strong>Parte de Referencia + Fecha + Monto</strong>: Combina referencia parcial, fecha y monto<br/>
+                                            • <strong>VAT en Concepto + Fecha + Monto (tolerancia 5%)</strong>: Similar al anterior pero con tolerancia en el monto<br/>
+                                            • <strong>Monto con Tolerancia 5%</strong>: Busca solo por monto con 5% de tolerancia
+                                        </div>
+                                        <field name="import_file" filename="import_filename"/>
+                                        <field name="import_filename" invisible="1"/>
+                                        <field name="import_file_type"/>
+                                        <field name="import_start_row"/>
+                                        <field name="import_date_format"/>
+                                    </group>
+                                    <group string="Mapeo de Columnas">
+                                        <div class="alert alert-info" role="alert">
+                                            <strong>Formato del Extracto Bancario:</strong><br/>
+                                            El extracto bancario típicamente tiene: <strong>Fecha</strong>, <strong>Referencia</strong>, <strong>Descripción</strong> (puede contener RIF/NIT o nombre), y <strong>Monto</strong>.<br/>
+                                            Las columnas de Cliente/Proveedor y RIF/NIT son <strong>opcionales</strong>. Si no están disponibles, el sistema buscará el RIF/NIT en la descripción.
+                                        </div>
+                                        <field name="import_column_date" placeholder="Ej: A o 1" required="1"/>
+                                        <field name="import_column_reference" placeholder="Ej: B o 2" required="1"/>
+                                        <field name="import_column_amount" placeholder="Ej: D o 4" required="1"/>
+                                        <field name="import_column_description" placeholder="Ej: C o 3 (opcional)"/>
+                                        <field name="import_column_partner" placeholder="Ej: C o 3 (opcional)"/>
+                                        <field name="import_column_vat" placeholder="Ej: F o 6 (opcional)"/>
+                                    </group>
+                                </group>
+                                <div class="alert alert-info" role="alert" invisible="state == 'draft'">
+                                    <strong>Nota:</strong> Para importar un nuevo extracto, primero debe volver a estado Borrador usando el botón "Volver a Borrador".
+                                </div>
+                            </page>
+                        
+                            <page string="Matches Encontrados">
+                                <field name="match_line_ids" nolabel="1">
+                                    <list default_order="match_score desc">
+                                        <field name="selected" widget="boolean_toggle"/>
+                                        <field name="match_score" widget="progressbar" string="Puntuación"/>
+                                        <!-- Información del Extracto -->
+                                        <field name="extracto_date" string="Fecha Extracto"/>
+                                        <field name="extracto_reference" string="Ref. Extracto"/>
+                                        <field name="extracto_description" string="Descripción Extracto"/>
+                                        <field name="extracto_amount" string="Monto Extracto"/>
+                                        <field name="extracto_partner_id" string="Partner Extracto"/>
+                                        <!-- Información del Pago -->
+                                        <field name="date" string="Fecha Pago"/>
+                                        <field name="payment_id" string="Pago"/>
+                                        <field name="payment_memo" string="Memo Pago"/>
+                                        <field name="partner_id" string="Partner Pago"/>
+                                        <field name="amount" string="Monto Pago"/>
+                                        <field name="state" widget="badge" decoration-success="state == 'reconciled'" decoration-danger="state == 'error'"/>
+                                    </list>
+                                </field>
+                            </page>
+                            
+                            <page string="Asientos Reconciliados" invisible="state != 'reconciled' or not reconciled_move_ids">
+                                <group>
+                                    <field name="reconciled_move_ids" nolabel="1" readonly="1">
+                                        <list>
+                                            <field name="name" string="Número"/>
+                                            <field name="date"/>
+                                            <field name="journal_id"/>
+                                            <field name="partner_id"/>
+                                            <field name="amount_total" string="Total"/>
+                                            <field name="state" widget="badge"/>
+                                        </list>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        
+        <!-- Vista búsqueda de registros de conciliación -->
+        <record id="view_match_register_conciliacion_search" model="ir.ui.view">
+            <field name="name">match.register.conciliacion.search</field>
+            <field name="model">match.register.conciliacion</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="journal_id"/>
+                    <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Matches Encontrados" name="matches_found" domain="[('state', '=', 'matches_found')]"/>
+                    <filter string="Reconciliado" name="reconciled" domain="[('state', '=', 'reconciled')]"/>
+                    <group expand="0" string="Agrupar por">
+                        <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Diario" name="group_journal" context="{'group_by': 'journal_id'}"/>
+                        <filter string="Fecha" name="group_date" context="{'group_by': 'date'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        
+        <!-- Acción para registros de conciliación -->
+        <record id="action_match_register_conciliacion" model="ir.actions.act_window">
+            <field name="name">Registros de Conciliación</field>
+            <field name="res_model">match.register.conciliacion</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_match_register_conciliacion_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Cree un nuevo registro de conciliación
+                </p>
+                <p>
+                    Use el botón "Importar Extracto" para cargar un archivo Excel o CSV y buscar matches automáticamente.
+                </p>
+            </field>
+        </record>
+        
+        <!-- Menú principal - Ubicado en Configuración de Contabilidad -->
+        <menuitem id="menu_match_register_conciliacion"
+                  name="Conciliaciones Bancarias"
+                  parent="account.menu_finance_configuration"
+                  sequence="100"
+                  action="action_match_register_conciliacion"
+                  groups="account.group_account_user"/>
+        
+        <!-- Herencia de vista para agregar campo memo a la vista de lista de pagos -->
+        <record id="view_account_payment_tree_inherit_memo" model="ir.ui.view">
+            <field name="name">account.payment.tree.inherit.memo</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="memo" string="Memo"/>
+                </xpath>
+            </field>
+        </record>
+        
+    </data>
+</odoo>
+

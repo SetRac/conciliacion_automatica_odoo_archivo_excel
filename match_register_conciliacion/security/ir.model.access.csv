@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_match_register_conciliacion_user,match.register.conciliacion.user,model_match_register_conciliacion,base.group_user,1,1,1,1
+access_match_register_conciliacion_accountant,match.register.conciliacion.accountant,model_match_register_conciliacion,account.group_account_user,1,1,1,1
+access_match_register_conciliacion_line_user,match.register.conciliacion.line.user,model_match_register_conciliacion_line,base.group_user,1,1,1,1
+access_match_register_conciliacion_line_accountant,match.register.conciliacion.line.accountant,model_match_register_conciliacion_line,account.group_account_user,1,1,1,1
+access_import_match_wizard_user,import.match.wizard.user,model_import_match_wizard,base.group_user,1,0,1,0
+access_import_match_wizard_accountant,import.match.wizard.accountant,model_import_match_wizard,account.group_account_user,1,0,1,0
+
