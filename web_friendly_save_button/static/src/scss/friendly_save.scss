@@ -1,0 +1,133 @@
+/* Botón de Guardar - Más grande y azul */
+#acm-floating-save.acm-floating-save {
+  position: fixed;
+  right: 24px;
+  bottom: 100px;
+  z-index: 1400; /* sobre formularios y control panel */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  min-width: 140px;
+  padding: 0 30px;
+  border-radius: 30px;
+  background: #007bff; /* Azul */
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+#acm-floating-save.acm-floating-save:hover {
+  background: #0056b3;
+  box-shadow: 0 10px 25px rgba(0, 123, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Botón de Regresar - Más grande y visible */
+#acm-floating-back.acm-floating-back {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  min-width: 140px;
+  padding: 0 30px;
+  border-radius: 30px;
+  background: #6c757d; /* Gris */
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 20px rgba(108, 117, 125, 0.4);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+#acm-floating-back.acm-floating-back:hover {
+  background: #5a6268;
+  box-shadow: 0 10px 25px rgba(108, 117, 125, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Mejorar visibilidad de botones nativos de Odoo */
+.o_form_button_save,
+button[name="save"],
+.o_control_panel [title*="Guardar"],
+.o_control_panel [title*="Save"] {
+  background-color: #007bff !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  padding: 10px 20px !important;
+  min-height: 44px !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3) !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    background-color: #0056b3 !important;
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4) !important;
+    transform: translateY(-1px) !important;
+  }
+  
+  &:active {
+    background-color: #004085 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+.o_form_button_cancel,
+button[name="cancel"] {
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  padding: 9px 18px !important;
+  min-height: 42px !important;
+}
+
+/* Icono de nube (indicador de cambios pendientes) más visible */
+.o_control_panel .fa-cloud,
+.o_control_panel .fa-cloud-upload-alt {
+  font-size: 20px !important;
+  color: #007bff !important;
+  animation: pulse 2s infinite !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@media (max-width: 768px) {
+  #acm-floating-save.acm-floating-save {
+    right: 16px;
+    bottom: 90px;
+    height: 56px;
+    min-width: 120px;
+    font-size: 16px;
+    padding: 0 24px;
+  }
+  
+  #acm-floating-back.acm-floating-back {
+    right: 16px;
+    bottom: 16px;
+    height: 56px;
+    min-width: 120px;
+    font-size: 16px;
+    padding: 0 24px;
+  }
+}
+
